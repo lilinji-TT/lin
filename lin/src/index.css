@@ -17,14 +17,19 @@
   flex-wrap: wrap;
 }
 
-.empty,
+.gray,
 .day {
   width: calc(100% / 7);
   text-align: center;
   line-height: 30px;
 }
 
-.day:hover .selected{
+.day:hover,
+.selected {
   background-color: #ccc;
   cursor: pointer;
+}
+
+.gray {
+  color: gray;
 }

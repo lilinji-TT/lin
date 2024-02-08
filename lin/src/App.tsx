@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import "./index.css";
 
 interface CalendarProps {
@@ -6,12 +6,34 @@ interface CalendarProps {
   onChange?: (date: Date) => void;
 }
 
-function Calendar({ value = new Date(), onChange }: CalendarProps) {
+interface CalendarRef {
+  getDate: () => Date;
+  setDate: (date: Date) => void;
+}
+
+const InternalCalendar: React.ForwardRefRenderFunction<
+  CalendarRef,
+  CalendarProps
+> = (props, ref) => {
+  const { value = new Date(), onChange } = props;
+
   const [date, setDate] = useState(value);
+
+  useImperativeHandle(ref, () => {
+    return {
+      getDate() {
+        return date;
+      },
+      setDate(date: Date) {
+        setDate(date);
+      },
+    };
+  });
 
   const handlePrevMonth = () => {
     setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1));
   };
+
   const handleNextMonth = () => {
     setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1));
   };
@@ -32,6 +54,7 @@ function Calendar({ value = new Date(), onChange }: CalendarProps) {
   ];
 
   const daysOfMonth = (year: number, month: number) => {
+    /** new Date()， 传入的month取值为0-11 */
     return new Date(year, month + 1, 0).getDate();
   };
 
@@ -39,24 +62,39 @@ function Calendar({ value = new Date(), onChange }: CalendarProps) {
     return new Date(year, month, 1).getDay();
   };
 
-  const RenderDays = () => {
+  const lastDateOfLastMonth = (year: number, month: number) => {
+    return new Date(year, month, 0).getDate();
+  };
+
+  const lastDayOfLastMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDay();
+  };
+
+  const renderDays = () => {
     const days = [];
 
     const daysCount = daysOfMonth(date.getFullYear(), date.getMonth());
     const firstDay = firstDayOfMonth(date.getFullYear(), date.getMonth());
-
+    const lastDate = lastDateOfLastMonth(date.getFullYear(), date.getMonth());
+    const lastDay = lastDayOfLastMonth(date.getFullYear(), date.getMonth());
+    // 上个月的
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="empty"></div>);
+      days.push(
+        <div key={`gray-${i}`} className="gray">
+          {lastDate - firstDay + i + 1}
+        </div>
+      );
     }
 
-    for (let i = 0; i <= daysCount; i++) {
+    // 这个月
+    for (let i = 1; i <= daysCount; i++) {
       const clickHandler = onChange?.bind(
         null,
         new Date(date.getFullYear(), date.getMonth(), i)
       );
       if (i === date.getDate()) {
         days.push(
-          <div key={`day-${i}`} className="day selected" onClick={clickHandler}>
+          <div key={i} className="day selected" onClick={clickHandler}>
             {i}
           </div>
         );
@@ -67,6 +105,15 @@ function Calendar({ value = new Date(), onChange }: CalendarProps) {
           </div>
         );
       }
+    }
+
+    // 下个月的
+    for (let i = 1; i < 7 - lastDay; i++) {
+      days.push(
+        <div key={`next-month-${i}`} className="gray">
+          {i}
+        </div>
+      );
     }
 
     return days;
@@ -89,10 +136,32 @@ function Calendar({ value = new Date(), onChange }: CalendarProps) {
         <div className="day">四</div>
         <div className="day">五</div>
         <div className="day">六</div>
-        <RenderDays />
+        {renderDays()}
       </div>
     </div>
   );
-}
+};
 
-export default Calendar;
+const Calendar = React.forwardRef(InternalCalendar);
+
+function Test() {
+  const calendarRef = useRef<CalendarRef>(null);
+
+  useEffect(() => {
+    console.log(calendarRef.current?.getDate().toLocaleDateString());
+
+    setTimeout(() => {
+      calendarRef.current?.setDate(new Date(2024, 3, 1));
+    }, 3000);
+  }, []);
+
+  return (
+    <div>
+      {/* <Calendar value={new Date('2023-3-1')} onChange={(date: Date) => {
+        alert(date.toLocaleDateString());
+    }}></Calendar> */}
+      <Calendar ref={calendarRef} value={new Date("2024-8-15")}></Calendar>
+    </div>
+  );
+}
+export default Test;
