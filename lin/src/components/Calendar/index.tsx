@@ -7,6 +7,7 @@ import MonthCalendar from "./MonthCalendar";
 import "./index.scss";
 export interface CalendarProps {
   value: Dayjs;
+  defaultValue?: Dayjs;
   style?: CSSProperties;
   className?: string | string[];
   dateRender?: (date: Dayjs) => ReactNode;
@@ -15,14 +16,19 @@ export interface CalendarProps {
   onChange?: (date: Dayjs) => void;
 }
 export default function Calendar(props: CalendarProps) {
-  const { className, style, value, locale, onChange } = props;
+  const { className, style, value, locale, defaultValue, onChange } = props;
   const [curValue, setCurValue] = useState<Dayjs>(value);
   const [curMonth, setCurMonth] = useState<Dayjs>(value);
   const classNames = cs("calendar_container", className);
 
   const selectedHandler = (date: Dayjs) => {
-    setCurValue(date);
-    setCurMonth(date);
+    // 如果defalutValue存在而value不存在，那么我们就走非受控逻辑
+    if (defaultValue) {
+      setCurValue(date);
+      setCurMonth(date);
+    }
+
+    // value存在就是受控逻辑
     onChange?.(date);
   };
 
