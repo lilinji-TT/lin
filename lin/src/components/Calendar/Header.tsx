@@ -14,6 +14,7 @@ function Header(props: HeaderProps) {
   const { curMonth, prevMonthHandler, nextMonthHanlder, todayHandler } = props;
   const localeContext = useContext(LocaleContext);
   const CalendarContext = allLocales[localeContext.locale];
+
   return (
     <div className="calendar-header">
       <div className="calendar-header-left">

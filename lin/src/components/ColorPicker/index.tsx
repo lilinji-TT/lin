@@ -1,8 +1,9 @@
 import cs from "classnames";
 import { CSSProperties, useState } from "react";
+import Palette from "./Palette";
 import { Color } from "./color";
 import { ColorType } from "./interface";
-import Palette from "./Palette";
+import './index.scss'
 
 export interface ColorPickerProps {
   style?: CSSProperties;
@@ -21,9 +22,16 @@ export default function ColorPickerPanel(props: ColorPickerProps) {
   });
   const classNames = cs("color-picker", className);
 
+  function onPaleteColorChange(color: Color) {
+    setColorValue(color);
+    onChange?.(color);
+  }
   return (
     <div className={classNames} style={style}>
-      <Palette color={colorValue}></Palette>
+      <Palette color={colorValue} onChange={onPaleteColorChange}></Palette>
+      <div
+        style={{ width: 20, height: 20, background: colorValue.toRgbString() }}
+      ></div>
     </div>
   );
 }

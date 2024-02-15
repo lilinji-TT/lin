@@ -6,7 +6,7 @@ import LocaleContext from "./LocaleContext";
 import MonthCalendar from "./MonthCalendar";
 import "./index.scss";
 export interface CalendarProps {
-  value: Dayjs;
+  value?: Dayjs;
   defaultValue?: Dayjs;
   style?: CSSProperties;
   className?: string | string[];
@@ -16,7 +16,15 @@ export interface CalendarProps {
   onChange?: (date: Dayjs) => void;
 }
 export default function Calendar(props: CalendarProps) {
-  const { className, style, value, locale, defaultValue, onChange } = props;
+  const {
+    className,
+    style,
+    value = dayjs(),
+    locale,
+    defaultValue = dayjs(),
+    onChange,
+  } = props;
+  console.log(value, defaultValue)
   const [curValue, setCurValue] = useState<Dayjs>(value);
   const [curMonth, setCurMonth] = useState<Dayjs>(value);
   const classNames = cs("calendar_container", className);

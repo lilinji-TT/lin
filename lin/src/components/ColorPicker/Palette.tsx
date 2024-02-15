@@ -2,12 +2,42 @@ import { useRef } from "react";
 import Handler from "./Handler";
 import Transform from "./Transform";
 import { Color } from "./color";
-export default function Palette(props: { color: Color }) {
-  const { color } = props;
+import useColorDrag from "./useColorDrag";
+import { calculateColor, calculateOffset } from "./utils";
+export default function Palette(props: {
+  color: Color;
+  onChange?: (color: Color) => void;
+}) {
+  const { color, onChange } = props;
   const transformRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [offset, dragStartHandler] = useColorDrag({
+    containerRef: containerRef,
+    targetRef: transformRef,
+    color,
+    onDragChange: (offsetValue) => {
+      const newColor = calculateColor({
+        offset: offsetValue,
+        containerRef,
+        targetRef: transformRef,
+        color,
+      });
+
+      onChange?.(newColor);
+    },
+
+    calculate: () => {
+        return calculateOffset(containerRef, transformRef, color)
+    },
+  });
+
   return (
-    <div className="color-picker-panel-palette">
-      <Transform ref={transformRef} offset={{ x: 50, y: 50 }}>
+    <div
+      ref={containerRef}
+      className="color-picker-panel-palette"
+      onMouseDown={dragStartHandler}
+    >
+      <Transform ref={transformRef} offset={{ x: offset.x, y: offset.y }}>
         <Handler color={color.toRgbString()}></Handler>
       </Transform>
       <div

@@ -1,8 +1,8 @@
-import dayjs from "dayjs";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Calendar from "./App";
 import CalendarComponent from "./components/Calendar";
+import ColorPickerPanel from "./components/ColorPicker";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
@@ -13,7 +13,9 @@ root.render(
   <React.StrictMode>
     <Calendar />
     <br />
-    <CalendarComponent value={dayjs("2023-11-08")} />
+    <CalendarComponent />
+    <br />
+    <ColorPickerPanel value="rgb(166 57 57)" />
   </React.StrictMode>
 );
 

@@ -1,5 +1,5 @@
 import cs from "classnames";
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { useContext } from "react";
 import LocaleContext from "./LocaleContext";
 import { CalendarProps } from "./index";
@@ -46,7 +46,7 @@ function renderDays(
   days: DateArray[],
   dateRender: MonthCaldendarProps["dateRender"],
   dateInnerContent: MonthCaldendarProps["dateInnerContent"],
-  value: Dayjs,
+  value: Dayjs | undefined,
   selectedHandler: MonthCaldendarProps["selectedHandler"]
 ) {
   const rows = [];
@@ -56,6 +56,7 @@ function renderDays(
       const item = days[i * 7 + j];
       row[j] = (
         <div
+          key={i * 7 + j}
           className={
             "calendar-month-body-cell " +
             (item.currentMonth ? "calendar-month-body-cell-current" : "")
@@ -69,7 +70,7 @@ function renderDays(
               <div
                 className={cs(
                   "calendar-month-body-cell-date-value",
-                  value.format("YYYY-MM-DD") === item.date.format("YYYY-MM-DD")
+                  (value || dayjs()).format("YYYY-MM-DD") === item.date.format("YYYY-MM-DD")
                     ? "calendar-month-body-cell-date-selected"
                     : ""
                 )}
@@ -88,8 +89,10 @@ function renderDays(
     rows.push(row);
   }
 
-  return rows.map((row) => (
-    <div className="calendar-month-body-row">{row}</div>
+  return rows.map((row, index) => (
+    <div key={index} className="calendar-month-body-row">
+      {row}
+    </div>
   ));
 }
 
