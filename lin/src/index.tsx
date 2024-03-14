@@ -1,32 +1,32 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
-import Calendar from "./App";
-import CalendarComponent from "./components/Calendar";
-import ColorPickerPanel from "./components/ColorPicker";
-import Space from "./components/Space";
-import { ConfigProvider } from "./components/Space/SpaceProvider";
+import { ConfigProvider } from "./components/Message/ConfigProvider";
+import { useMessage } from "./components/Message/useMessage";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
+function Test() {
+  const message = useMessage();
+  return (
+    <div>
+      <button
+        onClick={() => {
+          message.add({
+            content: "添加成功",
+          });
+        }}
+      >
+        添加
+      </button>
+    </div>
+  );
+}
 root.render(
-  <React.StrictMode>
-    <Calendar />
-    <br />
-    <CalendarComponent />
-    <br />
-    <ColorPickerPanel value="rgb(166 57 57)" />
-    <br />
-    <ConfigProvider space={{ size: "large" }}>
-      <Space direction="horizontal">
-        <div className="box">Box1</div>
-        <div className="box">Box2</div>
-        <div className="box">Box3</div>
-      </Space>
-    </ConfigProvider>
-  </React.StrictMode>
+  <ConfigProvider>
+    <Test></Test>
+  </ConfigProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

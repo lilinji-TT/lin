@@ -1,0 +1,112 @@
+import { useState } from "react";
+import { MessageProps, Position } from ".";
+
+type MessageList = {
+  top: MessageProps[];
+  bottom: MessageProps[];
+};
+
+const initialState = {
+  top: [],
+  bottom: [],
+};
+
+export default function useStore(defaultPosition: Position) {
+  const [messageList, setMessageList] = useState<MessageList>({
+    ...initialState,
+  });
+  return {
+    messageList,
+    /** 添加新的message，返回id */
+    add(messageProps: MessageProps) {
+      const id = getId(messageProps);
+
+      setMessageList((preState) => {
+        // 如果已存在，就返回preState
+        if (messageProps?.id) {
+          const position = getMessagePosition(preState, messageProps.id);
+          if (position) return preState;
+        }
+
+        const position = messageProps.position || defaultPosition;
+        const isTop = position.includes("top");
+
+        // 判断是否是top，是就在前面插入，不是就后面插入
+        const messages = isTop
+          ? [{ ...messageProps, id }, ...(preState[position] ?? [])]
+          : [...(preState[position] ?? []), { ...messageProps, id }];
+
+        return {
+          ...preState,
+          [position]: messages,
+        };
+      });
+
+      return id;
+    },
+    update(id: number, messageProps: MessageProps) {
+      if (!id) {
+        return;
+      }
+
+      setMessageList((preState) => {
+        const nextState = { ...preState };
+        const { position, index } = findMessage(nextState, id);
+
+        if (position && index !== -1) {
+          nextState[position][index] = {
+            ...nextState[position][index],
+            ...messageProps,
+          };
+        }
+
+        return nextState;
+      });
+    },
+    remove(id: number) {
+      setMessageList((preState) => {
+        const position = getMessagePosition(preState, id);
+        if (!position) {
+          return preState;
+        }
+
+        return {
+          ...preState,
+          [position]: preState[position].filter((item) => item.id !== id),
+        };
+      });
+    },
+    clearAll() {
+      setMessageList({ ...initialState });
+    },
+  };
+}
+
+let count = 1;
+export function getId(messageProps: MessageProps) {
+  if (messageProps?.id) {
+    return messageProps.id;
+  }
+
+  count += 1;
+  return count;
+}
+
+export function getMessagePosition(messageList: MessageList, id: number) {
+  for (const [position, list] of Object.entries(messageList)) {
+    if (list.find((item) => item.id === id)) {
+      return position as Position;
+    }
+  }
+}
+
+export function findMessage(messageList: MessageList, id: number) {
+  const position = getMessagePosition(messageList, id);
+
+  return {
+    position,
+    index: position
+      ? messageList[position].findIndex((item) => item.id === id)
+      : -1,
+  };
+}
