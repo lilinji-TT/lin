@@ -71,7 +71,6 @@ const Space: React.FC<SpaceProps> = (props) => {
       ),
     [size]
   );
-
   otherStyles.columnGap = horizontalSize;
   otherStyles.rowGap = verticalSize;
 
