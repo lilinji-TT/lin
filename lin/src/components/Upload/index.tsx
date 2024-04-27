@@ -1,8 +1,9 @@
-import { ChangeEvent, FC, PropsWithChildren, useRef } from "react";
+import { ChangeEvent, FC, PropsWithChildren, useRef, useState } from "react";
 
 import "./index.scss";
 import axios from "axios";
 import { UploadFile, UploadList } from "./UploadList";
+import Item from "antd/es/list/Item";
 
 export interface UploadProps extends PropsWithChildren {
   action: string;
@@ -18,6 +19,7 @@ export interface UploadProps extends PropsWithChildren {
   onSuccess?: (data: any, file: File) => void;
   onError?: (err: any, file: File) => void;
   onChange?: (file: File) => void;
+  onRemove?: (file: UploadFile) => void;
 }
 
 export const Upload: FC<UploadProps> = (props) => {
@@ -35,10 +37,37 @@ export const Upload: FC<UploadProps> = (props) => {
     onSuccess,
     onError,
     onChange,
+    onRemove,
   } = props;
 
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const updateFileList = (
+    updateFile: UploadFile,
+    updateObj: Partial<UploadFile>
+  ) => {
+    setFileList((prevList) => {
+      return prevList.map((file) => {
+        if (file.uid === updateFile.uid) {
+          return { ...file, ...updateObj };
+        } else {
+          return file;
+        }
+      });
+    });
+  };
+
+  const handleRemove = (file: UploadFile) => {
+    setFileList((prevList) => {
+      return prevList.filter((item) => item.uid === file.uid);
+    });
+
+    if (onRemove) {
+      onRemove(file);
+    }
+  };
   const handleClick = () => {
     if (fileInput.current) {
       fileInput.current.click();
@@ -76,6 +105,14 @@ export const Upload: FC<UploadProps> = (props) => {
   };
 
   const post = (file: File) => {
+    let uploadFile: UploadFile = {
+      uid: Date.now() + "upload-file",
+      status: "ready",
+      name: file.name,
+      size: file.size,
+      percent: 0,
+      raw: file,
+    };
     const formData = new FormData();
 
     formData.append(name || "file", file);
@@ -96,6 +133,10 @@ export const Upload: FC<UploadProps> = (props) => {
         onProgress: (e: any) => {
           let percentage = Math.round((e.loaded * 100) / e.total) || 0;
           if (percentage < 100) {
+            updateFileList(uploadFile, {
+              percent: percentage,
+              status: "uploading",
+            });
             if (onProgress) {
               onProgress(percentage, file);
             }
@@ -103,53 +144,33 @@ export const Upload: FC<UploadProps> = (props) => {
         },
       })
       .then((resp) => {
+         updateFileList(uploadFile, {status: 'success', response: resp.data})
+
         onSuccess?.(resp.data, file);
         onChange?.(resp.data);
       })
       .catch((err) => {
+        updateFileList(uploadFile, { status: 'error', error: err})
+
         onError?.(err, file);
         onChange?.(err);
       });
-    const fileList: UploadFile[] = [
-      {
-        uid: "11",
-        size: 111,
-        name: "xxxx",
-        status: "uploading",
-        percent: 50,
-      },
-      {
-        uid: "22",
-        size: 111,
-        name: "yyy",
-        status: "success",
-        percent: 50,
-      },
-      {
-        uid: "33",
-        size: 111,
-        name: "zzz",
-        status: "error",
-        percent: 50,
-      },
-    ];
-    return (
-      <div className="upload-component">
-        <div className="upload-input" onClick={handleClick}>
-          {children}
-          <input
-            className="upload-file-input"
-            type="file"
-            ref={fileInput}
-            onChange={handleFileOnChange}
-            accept={accept}
-            multiple={multiple}
-          />
-        </div>
-        <UploadList fileList={[]} onRemove={() => {}} />
-      </div>
-    );
   };
 
-  return <div></div>;
+  return (
+    <div className="upload-component">
+      <div className="upload-input" onClick={handleClick}>
+        {children}
+        <input
+          className="upload-file-input"
+          type="file"
+          ref={fileInput}
+          onChange={handleFileOnChange}
+          accept={accept}
+          multiple={multiple}
+        />
+      </div>
+      <UploadList fileList={fileList} onRemove={() => {}} />
+    </div>
+  );
 };

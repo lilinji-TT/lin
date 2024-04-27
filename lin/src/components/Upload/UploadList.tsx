@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Progress } from "antd";
 import {
   CheckOutlined,
@@ -13,7 +13,7 @@ export interface UploadFile {
   name: string;
   status?: "ready" | "uploading" | "success" | "error";
   percent?: number;
-  row?: File;
+  raw?: File;
   response?: any;
   error?: any;
 }
@@ -25,7 +25,7 @@ interface UploadListProps {
 
 export const UploadList: FC<UploadListProps> = (props) => {
   const { fileList, onRemove } = props;
-
+  
   return (
     <ul className="upload-list">
       {fileList.map((file) => (
